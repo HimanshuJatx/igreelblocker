@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distraction-Free Instagram Simulator</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbar hiding for chrome/safari/opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* Smooth transitions */
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        /* Animation for modal */
+        @keyframes fade-in {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-modal {
+            animation: fade-in 0.2s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 text-gray-900 flex flex-col items-center justify-center p-4 font-sans">
+
+    <!-- Header Info -->
+    <div class="mb-8 text-center max-w-lg">
+        <h1 class="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Distraction-Free Simulator
+        </h1>
+        <p class="text-gray-600 mb-6">
+            Toggle the settings to see how a "Focus Mode" wrapper would look. 
+            It removes addictive loops while keeping Stories and Messages.
+        </p>
+        
+        <div class="flex justify-center gap-4">
+            <button id="header-focus-btn" class="flex items-center px-6 py-2 rounded-full font-semibold transition-all shadow-md bg-white text-gray-700 hover:bg-gray-50 border border-gray-200">
+                <i data-lucide="shield" class="mr-2 w-4 h-4"></i>
+                <span class="btn-text">Turn Focus On</span>
+            </button>
+            
+            <button id="get-code-btn" class="flex items-center px-6 py-2 rounded-full font-semibold bg-gray-800 text-white hover:bg-gray-900 shadow-md transition-all">
+                <i data-lucide="settings" class="mr-2 w-4 h-4"></i>
+                Get Real Code
+            </button>
+        </div>
+    </div>
+
+    <!-- Phone Simulator -->
+    <div class="relative w-[360px] h-[720px] bg-black rounded-[3rem] border-8 border-gray-800 shadow-2xl overflow-hidden ring-4 ring-gray-300">
+        
+        <!-- Dynamic Notch -->
+        <div class="absolute top-0 w-full h-8 bg-black z-50 flex justify-center">
+            <div class="w-40 h-6 bg-black rounded-b-2xl"></div>
+        </div>
+
+        <!-- App Content -->
+        <div class="w-full h-full bg-white flex flex-col pt-8 pb-16 overflow-hidden relative">
+            
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center px-4 py-2 bg-white border-b border-gray-100 z-10">
+                <h2 class="text-xl font-bold font-serif tracking-tight cursor-pointer">Instagram</h2>
+                <div class="flex items-center space-x-5">
+                    <div class="relative">
+                        <i data-lucide="heart" class="text-gray-800 w-6 h-6"></i>
+                        <div class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
+                    </div>
+                    <div class="relative">
+                        <i data-lucide="message-circle" class="text-gray-800 w-6 h-6"></i>
+                        <div class="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-red-500 rounded-full text-[10px] text-white font-bold border border-white">3</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div id="main-scroll-area" class="flex-1 overflow-y-auto no-scrollbar bg-white">
+                
+                <!-- Stories Section -->
+                <div class="py-4 border-b border-gray-100">
+                    <div id="stories-container" class="flex space-x-4 overflow-x-auto px-4 pb-2 no-scrollbar">
+                        <!-- Stories injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Feed Section -->
+                <div id="feed-container" class="pb-4">
+                    <!-- Posts injected via JS -->
+                </div>
+
+                <!-- Caught Up Message (Hidden by default) -->
+                <div id="caught-up-message" class="hidden flex flex-col items-center justify-center h-64 p-8 text-center text-gray-500">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="check" class="text-green-500 w-8 h-8"></i>
+                    </div>
+                    <p class="font-semibold text-lg text-gray-800">You're all caught up</p>
+                    <p class="text-sm mt-2">Feed is hidden to help you stay focused.</p>
+                </div>
+                
+                <!-- Focus Mode Footer Message -->
+                <div id="focus-footer-msg" class="hidden py-8 text-center bg-gray-50">
+                    <p class="text-gray-400 text-sm">Focus Mode is Active.<br/>Reels and Explore tabs are hidden.</p>
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="absolute bottom-0 w-full h-[60px] bg-white border-t border-gray-200 flex items-center justify-around px-2 z-20 pb-2">
+                
+                <button class="nav-btn p-2 transition-transform active:scale-95" data-tab="home">
+                    <i data-lucide="home" class="w-[26px] h-[26px] text-black"></i>
+                </button>
+
+                <button id="nav-search" class="nav-btn p-2 transition-all duration-300 active:scale-95" data-tab="search">
+                    <i data-lucide="search" class="w-[26px] h-[26px] text-gray-500"></i>
+                </button>
+
+                <button class="nav-btn p-2 transition-transform active:scale-95">
+                    <i data-lucide="plus-square" class="w-[26px] h-[26px] text-gray-800"></i>
+                </button>
+
+                <button id="nav-reels" class="nav-btn p-2 transition-all duration-300 active:scale-95" data-tab="reels">
+                    <i data-lucide="clapperboard" class="w-[26px] h-[26px] text-gray-500"></i>
+                </button>
+
+                <button class="nav-btn p-2 transition-transform active:scale-95" data-tab="profile">
+                    <i data-lucide="user" class="w-[26px] h-[26px] text-gray-500"></i>
+                </button>
+
+            </div>
+
+            <!-- Home Indicator -->
+            <div class="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-300 rounded-full z-30"></div>
+        </div>
+    </div>
+
+    <!-- Desktop Configuration Panel -->
+    <div class="hidden lg:block absolute right-12 top-1/2 transform -translate-y-1/2 w-80 bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+        <h3 class="font-bold text-lg mb-4 flex items-center">
+            <i data-lucide="settings" class="mr-2 text-gray-600 w-5 h-5"></i> 
+            Controls
+        </h3>
+        
+        <div class="space-y-4">
+            <!-- Focus Mode Toggle -->
+            <div class="flex items-center justify-between cursor-pointer" id="panel-focus-toggle">
+                <span class="text-sm text-gray-700">Focus Mode</span>
+                <div class="w-12 h-6 bg-gray-300 rounded-full p-1 transition-colors duration-300 relative" id="panel-focus-bg">
+                    <div class="w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-300 translate-x-0" id="panel-focus-dot"></div>
+                </div>
+            </div>
+            
+            <!-- Hide Feed Toggle -->
+            <div class="flex items-center justify-between cursor-pointer opacity-50 pointer-events-none transition-opacity" id="panel-feed-toggle-container">
+                <span class="text-sm text-gray-700">Hide Main Feed</span>
+                <div class="w-12 h-6 bg-gray-300 rounded-full p-1 transition-colors duration-300 relative" id="panel-feed-bg">
+                    <div class="w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-300 translate-x-0" id="panel-feed-dot"></div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-100">
+                <p class="text-xs text-gray-500 mb-2">
+                    <span class="font-semibold text-gray-700">What is this?</span><br/>
+                    This simulator mimics a modified Instagram wrapper. When enabled, it visually removes the Reels and Explore tabs, preventing doom-scrolling.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Code Modal -->
+    <div id="code-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 relative animate-modal">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <h3 class="text-2xl font-bold mb-2">How to do this for real</h3>
+            <p class="text-sm text-gray-600 mb-4">
+                You can achieve this effect on your real phone by using <strong>Instagram in a Mobile Browser</strong> (Safari/Chrome) and running this script.
+            </p>
+            
+            <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4 text-sm text-blue-800">
+                <strong>Tip:</strong> Create a new bookmark in your browser, paste the code below as the URL, and tap it whenever you open Instagram.
+            </div>
+
+            <!-- Code Block -->
+            <div class="mt-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-700">Copy this Bookmarklet Code:</span>
+                    <button id="copy-btn" class="flex items-center text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                        <i data-lucide="copy" class="mr-1 w-3.5 h-3.5"></i>
+                        <span>Copy Code</span>
+                    </button>
+                </div>
+                <div class="bg-gray-900 rounded-lg p-3 relative group overflow-hidden">
+                    <pre id="code-content" class="text-xs text-gray-300 font-mono overflow-x-auto whitespace-pre-wrap break-all">javascript:(function(){
+    const style = document.createElement('style');
+    style.innerHTML = `
+      /* Hide Reels Tab */
+      a[href*="/reels/"], [aria-label="Reels"] { display: none !important; }
+      
+      /* Hide Explore Tab */
+      a[href*="/explore/"], [aria-label="Explore"], [aria-label="Search"] { display: none !important; }
+      
+      /* Optional: Hide Main Feed Posts but keep Stories */
+      /* Remove the comment markers below to hide feed */
+      /* article { display: none !important; } */
+    `;
+    document.head.appendChild(style);
+    alert('Focus Mode Activated! Reels and Explore hidden.');
+  })();</pre>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button id="done-btn" class="px-5 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-black transition-colors">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        // --- Data ---
+        const stories = [
+            { username: 'You', image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop', isAdd: true },
+            { username: 'jessica_t...', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop' },
+            { username: 'mike_design', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop' },
+            { username: 'sarah_art', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop' },
+            { username: 'tech_guru', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop' },
+        ];
+
+        const posts = [
+            {
+                username: 'jessica_travels',
+                avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+                image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&h=600&fit=crop',
+                likes: '1,243',
+                caption: 'Sunset vibes in Paris! 🗼✨ #travel #france'
+            },
+            {
+                username: 'mike_design',
+                avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop',
+                image: 'https://images.unsplash.com/photo-1586717791821-3f44a5638d48?w=600&h=600&fit=crop',
+                likes: '856',
+                caption: 'Minimalist workspace setup for the day. 💻☕'
+            }
+        ];
+
+        // --- State ---
+        let state = {
+            focusMode: false,
+            hideFeed: false,
+            activeTab: 'home'
+        };
+
+        // --- DOM Elements ---
+        const storiesContainer = document.getElementById('stories-container');
+        const feedContainer = document.getElementById('feed-container');
+        const caughtUpMessage = document.getElementById('caught-up-message');
+        const focusFooterMsg = document.getElementById('focus-footer-msg');
+        
+        const navSearch = document.getElementById('nav-search');
+        const navReels = document.getElementById('nav-reels');
+        
+        const headerFocusBtn = document.getElementById('header-focus-btn');
+        const panelFocusToggle = document.getElementById('panel-focus-toggle');
+        const panelFeedToggle = document.getElementById('panel-feed-toggle-container'); // Container for opacity
+        const panelFeedToggleBtn = document.getElementById('panel-feed-bg'); // Click target
+
+        // --- Rendering Functions ---
+
+        function renderStories() {
+            storiesContainer.innerHTML = stories.map(story => `
+                <div class="flex flex-col items-center space-y-1 min-w-[72px]">
+                    <div class="w-16 h-16 rounded-full p-[2px] ${story.isAdd ? 'bg-gray-200' : 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600'}">
+                        <div class="w-full h-full rounded-full bg-white border-2 border-white overflow-hidden relative">
+                            <img src="${story.image}" alt="${story.username}" class="w-full h-full object-cover" />
+                            ${story.isAdd ? `
+                            <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+                                <div class="bg-blue-500 rounded-full p-1 border-2 border-white absolute bottom-1 right-1">
+                                    <i data-lucide="plus-square" class="text-white w-2.5 h-2.5"></i>
+                                </div>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    <span class="text-xs text-gray-800 truncate w-16 text-center">${story.username}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderPosts() {
+            feedContainer.innerHTML = posts.map(post => `
+                <div class="bg-white border-b border-gray-100 pb-4 mb-2">
+                    <div class="flex items-center justify-between p-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 p-[1.5px]">
+                                <img src="${post.avatar}" alt="${post.username}" class="w-full h-full rounded-full border border-white object-cover" />
+                            </div>
+                            <span class="text-sm font-semibold">${post.username}</span>
+                        </div>
+                        <i data-lucide="more-horizontal" class="text-gray-600 w-5 h-5"></i>
+                    </div>
+                    
+                    <div class="relative aspect-square bg-gray-100">
+                        <img src="${post.image}" alt="Post" class="w-full h-full object-cover" />
+                    </div>
+
+                    <div class="p-3">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-4">
+                                <i data-lucide="heart" class="text-gray-800 hover:text-gray-500 cursor-pointer w-6 h-6"></i>
+                                <i data-lucide="message-circle" class="text-gray-800 hover:text-gray-500 cursor-pointer w-6 h-6"></i>
+                                <i data-lucide="send" class="text-gray-800 hover:text-gray-500 cursor-pointer w-6 h-6"></i>
+                            </div>
+                            <i data-lucide="bookmark" class="text-gray-800 hover:text-gray-500 cursor-pointer w-6 h-6"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-sm font-semibold">${post.likes} likes</p>
+                            <p class="text-sm">
+                                <span class="font-semibold mr-2">${post.username}</span>
+                                ${post.caption}
+                            </p>
+                            <p class="text-xs text-gray-400 uppercase mt-1">2 hours ago</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Logic & Event Listeners ---
+
+        function updateUI() {
+            // Update Header Button
+            const btnText = headerFocusBtn.querySelector('.btn-text');
+            if (state.focusMode) {
+                headerFocusBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+                headerFocusBtn.classList.add('bg-purple-600', 'text-white', 'hover:bg-purple-700');
+                btnText.textContent = "Focus Mode ON";
+            } else {
+                headerFocusBtn.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+                headerFocusBtn.classList.remove('bg-purple-600', 'text-white', 'hover:bg-purple-700');
+                btnText.textContent = "Turn Focus On";
+            }
+
+            // Update Panel Toggle Switches
+            const focusBg = document.getElementById('panel-focus-bg');
+            const focusDot = document.getElementById('panel-focus-dot');
+            if (state.focusMode) {
+                focusBg.classList.replace('bg-gray-300', 'bg-green-500');
+                focusDot.classList.replace('translate-x-0', 'translate-x-6');
+                
+                // Enable Feed Toggle
+                panelFeedToggle.classList.remove('opacity-50', 'pointer-events-none');
+            } else {
+                focusBg.classList.replace('bg-green-500', 'bg-gray-300');
+                focusDot.classList.replace('translate-x-6', 'translate-x-0');
+                
+                // Disable Feed Toggle and reset logic if focus is off
+                panelFeedToggle.classList.add('opacity-50', 'pointer-events-none');
+                state.hideFeed = false; 
+            }
+
+            // Update Feed Toggle Switch Visuals
+            const feedBg = document.getElementById('panel-feed-bg');
+            const feedDot = document.getElementById('panel-feed-dot');
+            if (state.hideFeed) {
+                feedBg.classList.replace('bg-gray-300', 'bg-green-500');
+                feedDot.classList.replace('translate-x-0', 'translate-x-6');
+            } else {
+                feedBg.classList.replace('bg-green-500', 'bg-gray-300');
+                feedDot.classList.replace('translate-x-6', 'translate-x-0');
+            }
+
+            // Update Phone UI Elements (The "Magic")
+            if (state.focusMode) {
+                // Disable Reels and Search
+                navSearch.classList.add('opacity-20', 'scale-75', 'cursor-not-allowed', 'grayscale');
+                navReels.classList.add('opacity-20', 'scale-75', 'cursor-not-allowed', 'grayscale');
+                navSearch.disabled = true;
+                navReels.disabled = true;
+                
+                // Show Footer Message
+                if (!state.hideFeed) {
+                    focusFooterMsg.classList.remove('hidden');
+                } else {
+                    focusFooterMsg.classList.add('hidden');
+                }
+
+                // Handle Feed Hiding
+                if (state.hideFeed) {
+                    feedContainer.classList.add('hidden');
+                    caughtUpMessage.classList.remove('hidden');
+                } else {
+                    feedContainer.classList.remove('hidden');
+                    caughtUpMessage.classList.add('hidden');
+                }
+            } else {
+                // Reset everything
+                navSearch.classList.remove('opacity-20', 'scale-75', 'cursor-not-allowed', 'grayscale');
+                navReels.classList.remove('opacity-20', 'scale-75', 'cursor-not-allowed', 'grayscale');
+                navSearch.disabled = false;
+                navReels.disabled = false;
+                
+                feedContainer.classList.remove('hidden');
+                caughtUpMessage.classList.add('hidden');
+                focusFooterMsg.classList.add('hidden');
+            }
+        }
+
+        // --- Event Handlers ---
+
+        function toggleFocus() {
+            state.focusMode = !state.focusMode;
+            updateUI();
+        }
+
+        function toggleFeed() {
+            if (!state.focusMode) return;
+            state.hideFeed = !state.hideFeed;
+            updateUI();
+        }
+
+        // Listeners
+        headerFocusBtn.addEventListener('click', toggleFocus);
+        panelFocusToggle.addEventListener('click', toggleFocus);
+        
+        // Feed toggle needs specific targeting since the container has opacity style
+        document.getElementById('panel-feed-bg').parentElement.addEventListener('click', toggleFeed);
+
+        // Modal Logic
+        const modal = document.getElementById('code-modal');
+        document.getElementById('get-code-btn').addEventListener('click', () => {
+            modal.classList.remove('hidden');
+        });
+        document.getElementById('close-modal-btn').addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+        document.getElementById('done-btn').addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+
+        // Copy Code Logic
+        document.getElementById('copy-btn').addEventListener('click', function() {
+            const codeText = document.getElementById('code-content').innerText;
+            navigator.clipboard.writeText(codeText);
+            
+            const originalHTML = this.innerHTML;
+            this.innerHTML = `<i data-lucide="check" class="mr-1 w-3.5 h-3.5"></i>Copied!`;
+            this.classList.replace('text-blue-600', 'text-green-600');
+            
+            setTimeout(() => {
+                this.innerHTML = originalHTML;
+                this.classList.replace('text-green-600', 'text-blue-600');
+                lucide.createIcons(); // Re-render icon
+            }, 2000);
+        });
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderStories();
+            renderPosts();
+            lucide.createIcons();
+            updateUI();
+        });
+
+    </script>
+</body>
+</html>
