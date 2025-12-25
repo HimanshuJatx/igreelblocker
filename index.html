@@ -34,7 +34,14 @@
         .animate-modal {
             animation: fade-in 0.2s ease-out forwards;
         }
+        
+        /* Instagram Font Mock */
+        .font-insta {
+            font-family: 'Billabong', 'Grand Hotel', cursive;
+        }
     </style>
+    <!-- Load a cursive font for the logo -->
+    <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
 </head>
 <body class="min-h-screen bg-gray-100 text-gray-900 flex flex-col items-center justify-center p-4 font-sans">
 
@@ -44,19 +51,17 @@
             Distraction-Free Simulator
         </h1>
         <p class="text-gray-600 mb-6">
-            Toggle the settings to see how a "Focus Mode" wrapper would look. 
-            It removes addictive loops while keeping Stories and Messages.
+            This demo simulates an app where you login, and immediately have zero distractions.
         </p>
         
         <div class="flex justify-center gap-4">
-            <button id="header-focus-btn" class="flex items-center px-6 py-2 rounded-full font-semibold transition-all shadow-md bg-white text-gray-700 hover:bg-gray-50 border border-gray-200">
-                <i data-lucide="shield" class="mr-2 w-4 h-4"></i>
-                <span class="btn-text">Turn Focus On</span>
-            </button>
-            
             <button id="get-code-btn" class="flex items-center px-6 py-2 rounded-full font-semibold bg-gray-800 text-white hover:bg-gray-900 shadow-md transition-all">
                 <i data-lucide="settings" class="mr-2 w-4 h-4"></i>
                 Get Real Code
+            </button>
+            <button onclick="location.reload()" class="flex items-center px-6 py-2 rounded-full font-semibold bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-md transition-all">
+                <i data-lucide="rotate-ccw" class="mr-2 w-4 h-4"></i>
+                Reset Simulator
             </button>
         </div>
     </div>
@@ -69,12 +74,43 @@
             <div class="w-40 h-6 bg-black rounded-b-2xl"></div>
         </div>
 
-        <!-- App Content -->
-        <div class="w-full h-full bg-white flex flex-col pt-8 pb-16 overflow-hidden relative">
+        <!-- Login Screen (Visible Initially) -->
+        <div id="login-screen" class="w-full h-full bg-white flex flex-col items-center justify-center p-8 relative z-40">
+            <h1 class="font-insta text-5xl mb-12 mt-[-40px]">Instagram</h1>
+            
+            <div class="w-full space-y-3">
+                <input type="text" placeholder="Phone number, username, or email" class="w-full bg-gray-50 border border-gray-300 rounded px-3 py-2.5 text-xs focus:outline-none focus:border-gray-400">
+                <input type="password" placeholder="Password" class="w-full bg-gray-50 border border-gray-300 rounded px-3 py-2.5 text-xs focus:outline-none focus:border-gray-400">
+                
+                <button id="login-btn" class="w-full bg-blue-500 text-white font-semibold rounded py-1.5 text-sm mt-4 hover:bg-blue-600 transition-colors">
+                    Log in
+                </button>
+            </div>
+
+            <div class="flex items-center w-full mt-6 mb-6">
+                <div class="h-px bg-gray-300 flex-1"></div>
+                <span class="px-4 text-xs text-gray-500 font-semibold">OR</span>
+                <div class="h-px bg-gray-300 flex-1"></div>
+            </div>
+
+            <button class="flex items-center text-blue-900 font-semibold text-sm">
+                <span class="mr-2 text-lg">f</span> Log in with Facebook
+            </button>
+            
+            <p class="text-xs text-blue-900 mt-4 cursor-pointer">Forgot password?</p>
+
+            <div class="absolute bottom-8 text-xs text-gray-400 text-center px-8">
+                <p class="mb-2 font-semibold text-red-500">Simulator Mode</p>
+                Click "Log in" to enter the distraction-free environment.
+            </div>
+        </div>
+
+        <!-- App Content (Hidden Initially) -->
+        <div id="app-content" class="w-full h-full bg-white flex flex-col pt-8 pb-16 overflow-hidden relative hidden">
             
             <!-- Top Bar -->
             <div class="flex justify-between items-center px-4 py-2 bg-white border-b border-gray-100 z-10">
-                <h2 class="text-xl font-bold font-serif tracking-tight cursor-pointer">Instagram</h2>
+                <h2 class="font-insta text-3xl pt-1 cursor-pointer">Instagram</h2>
                 <div class="flex items-center space-x-5">
                     <div class="relative">
                         <i data-lucide="heart" class="text-gray-800 w-6 h-6"></i>
@@ -174,7 +210,7 @@
             <div class="pt-4 border-t border-gray-100">
                 <p class="text-xs text-gray-500 mb-2">
                     <span class="font-semibold text-gray-700">What is this?</span><br/>
-                    This simulator mimics a modified Instagram wrapper. When enabled, it visually removes the Reels and Explore tabs, preventing doom-scrolling.
+                    This simulates the login flow. Notice that once you log in, the "distraction" features are already gone.
                 </p>
             </div>
         </div>
@@ -215,12 +251,13 @@
       /* Hide Explore Tab */
       a[href*="/explore/"], [aria-label="Explore"], [aria-label="Search"] { display: none !important; }
       
-      /* Optional: Hide Main Feed Posts but keep Stories */
-      /* Remove the comment markers below to hide feed */
-      /* article { display: none !important; } */
+      /* Hide Main Feed Posts (keep Stories) */
+      article { display: none !important; }
+      /* Hide "Suggested posts" container if visible */
+      main[role="main"] > section > div > div:nth-child(2) { display: none !important; }
     `;
     document.head.appendChild(style);
-    alert('Focus Mode Activated! Reels and Explore hidden.');
+    alert('Focus Mode Activated! Feed, Reels, and Explore hidden.');
   })();</pre>
                 </div>
             </div>
@@ -269,6 +306,10 @@
         };
 
         // --- DOM Elements ---
+        const loginScreen = document.getElementById('login-screen');
+        const loginBtn = document.getElementById('login-btn');
+        const appContent = document.getElementById('app-content');
+        
         const storiesContainer = document.getElementById('stories-container');
         const feedContainer = document.getElementById('feed-container');
         const caughtUpMessage = document.getElementById('caught-up-message');
@@ -277,10 +318,30 @@
         const navSearch = document.getElementById('nav-search');
         const navReels = document.getElementById('nav-reels');
         
-        const headerFocusBtn = document.getElementById('header-focus-btn');
+        const headerFocusBtn = document.getElementById('header-focus-btn'); // No longer used for toggling in header, but we keep element ref
         const panelFocusToggle = document.getElementById('panel-focus-toggle');
-        const panelFeedToggle = document.getElementById('panel-feed-toggle-container'); // Container for opacity
-        const panelFeedToggleBtn = document.getElementById('panel-feed-bg'); // Click target
+        const panelFeedToggle = document.getElementById('panel-feed-toggle-container'); 
+        const panelFeedToggleBtn = document.getElementById('panel-feed-bg');
+
+        // --- Login Logic ---
+        loginBtn.addEventListener('click', () => {
+            // 1. Show loading state on button (optional visual polish)
+            loginBtn.textContent = "Logging in...";
+            loginBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            
+            // 2. Simulate network delay
+            setTimeout(() => {
+                // 3. Hide login, show app
+                loginScreen.classList.add('hidden');
+                appContent.classList.remove('hidden');
+                
+                // 4. ACTIVATE RESTRICTIONS IMMEDIATELY
+                state.focusMode = true;
+                state.hideFeed = true;
+                updateUI(); // Apply the visual changes
+                
+            }, 800);
+        });
 
         // --- Rendering Functions ---
 
@@ -345,18 +406,6 @@
         // --- Logic & Event Listeners ---
 
         function updateUI() {
-            // Update Header Button
-            const btnText = headerFocusBtn.querySelector('.btn-text');
-            if (state.focusMode) {
-                headerFocusBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
-                headerFocusBtn.classList.add('bg-purple-600', 'text-white', 'hover:bg-purple-700');
-                btnText.textContent = "Focus Mode ON";
-            } else {
-                headerFocusBtn.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
-                headerFocusBtn.classList.remove('bg-purple-600', 'text-white', 'hover:bg-purple-700');
-                btnText.textContent = "Turn Focus On";
-            }
-
             // Update Panel Toggle Switches
             const focusBg = document.getElementById('panel-focus-bg');
             const focusDot = document.getElementById('panel-focus-dot');
@@ -436,7 +485,6 @@
         }
 
         // Listeners
-        headerFocusBtn.addEventListener('click', toggleFocus);
         panelFocusToggle.addEventListener('click', toggleFocus);
         
         // Feed toggle needs specific targeting since the container has opacity style
@@ -475,7 +523,7 @@
             renderStories();
             renderPosts();
             lucide.createIcons();
-            updateUI();
+            // Do NOT call updateUI initially so we don't apply focus mode to the hidden app layer yet
         });
 
     </script>
